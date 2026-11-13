@@ -37,7 +37,8 @@ assert 'class="hero-links"' in html, "accessible links must remain independent o
 assert 'class="hero-introduction"' in html, "introductory text must be outside hero image"
 assert 'class="hero-hotspot"' not in html, "stale art-overlay hotspot must not be retained"
 assert Path("assets/hero-polished-no-wiring.webp").stat().st_size > 400000, "unexpectedly low resolution hero asset"
-assert "https://grandchallenge.github.io/MATH-PROGRAMME/" in html, "missing documentary continuity"
+assert "/MATH-PROGRAMME/" in html, "missing documentary continuity"
+assert "https://grandchallenge.github.io/MATH-PROGRAMME/" not in html, "avoid hard-coding pre-migration hostname"
 assert "showModal()" in html and "menu-toggle" in html, "missing interactive navigation"
 assert not Path("CNAME").exists(), "preview must not install a custom domain"
 print(f"PASS: {len(p.ids)} IDs, {len(p.images)} illustrations, {len(p.links)} links; existing Maths site untouched")
