@@ -54,6 +54,46 @@
 .hero-introduction p{margin:0;font-size:15px;line-height:1.5}
 .hero-introduction .hero-motto{font-size:clamp(21px,2.4vw,30px);color:var(--blue);white-space:nowrap;line-height:1.2}
 @media(max-width:690px){.hero-introduction{display:block;padding-top:16px}.hero-introduction p+p{margin-top:9px}}
+
+/* Compact editorial sections: shared alignment, readable copy, natural height. */
+.estate{display:block;padding:30px 10px 26px}
+.estate-intro{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);align-items:start;gap:48px;padding:0 0 25px}
+.estate h2,.record h2{font-size:clamp(28px,2.65vw,38px);line-height:1.12;letter-spacing:-.035em;max-width:21ch;margin:0}
+.estate-intro p,.record-copy p{font-size:15px;line-height:1.55;max-width:60ch;margin:0}
+.programme-grid{grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--rule)}
+.programme{min-height:0;padding:22px 24px 4px;border-left:1px solid #c2c4c3}
+.programme:first-child{border-left:0;padding-left:0}
+.programme:last-child{padding-right:0}
+.programme h3{font-size:23px;line-height:1.18;min-height:2.36em;margin:0 0 12px;letter-spacing:-.015em}
+.programme p{font-size:14px;line-height:1.5;max-width:29ch}
+.record{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:48px;min-height:0;padding:30px 10px}
+.record-title,.record-copy{padding:0;border:0}
+.record-links{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:18px;margin-top:22px}
+.record-links a{display:flex;align-items:center;justify-content:space-between;gap:8px;text-align:left;border-top:1px solid #b0b3b4;padding:12px 0 0;font:14px/1.3 var(--sans)}
+.record-links a span{font-size:17px;height:auto;color:var(--blue)}
+.record-links a:hover{color:var(--blue)}
+@media(max-width:900px){
+ .estate-intro,.record{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px}
+ .programme-grid{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:24px}
+ .programme{padding:20px 22px 0}
+ .programme:nth-child(odd){padding-left:0;border-left:0}
+ .programme:nth-child(even){padding-right:0}
+ .programme:nth-child(n+3){border-top:1px solid #c2c4c3}
+ .programme h3{min-height:0}
+ .record-links{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+}
+@media(max-width:600px){
+ .estate{padding:24px 4px}
+ .estate-intro{grid-template-columns:1fr;gap:14px;padding-bottom:22px}
+ .estate h2,.record h2{font-size:30px;max-width:22ch}
+ .estate-intro p,.record-copy p{font-size:14px}
+ .programme{padding:18px 16px 0}
+ .programme h3{font-size:20px;min-height:2.36em;margin-bottom:10px}
+ .programme p{font-size:13px;line-height:1.5}
+ .record{display:grid;grid-template-columns:1fr;gap:16px;padding:24px 4px}
+ .record-links{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+ .record-links a{font-size:13px}
+}
 </style>
   
 </head>
@@ -92,7 +132,7 @@
   <div class="rule"></div>
   <section id="research" class="estate" aria-labelledby="estate-title">
     <div class="estate-intro" id="mathematics">
-      <h2 id="estate-title">The working<br>mathematical estate.</h2><span class="blue-rule"></span>
+      <h2 id="estate-title">The working mathematical estate.</h2>
       <p>A research environment for deep mathematics, rigorous computation, and adaptive intelligence — uniting theory, experiment, and real-world exploration across scales.</p>
     </div>
     <div class="programme-grid">
@@ -115,9 +155,9 @@
     </div>
   </section>
   <section class="record" id="library" aria-labelledby="record-title">
-    <div class="record-title"><h2 id="record-title">Discovery with<br>a visible record.</h2><span class="blue-rule"></span></div>
+    <div class="record-title"><h2 id="record-title">Discovery with a visible record.</h2></div>
     <div class="record-copy"><p>Research at GCL is developed in the open, with methods, data, and results documented for inspection, replication, and extension.</p>
-      <div class="record-links"><a href="/MATH-PROGRAMME/documentaries/"><span aria-hidden="true">▤</span>Papers</a><a href="https://github.com/grandchallenge/MATHFORGE"><span aria-hidden="true">▥</span>Data</a><a href="https://github.com/grandchallenge/MATHSOLVE"><span aria-hidden="true">&lt;/&gt;</span>Methods</a><a href="https://github.com/grandchallenge/MATHCERT"><span aria-hidden="true">▱</span>Artifacts</a><a href="/MATH-PROGRAMME/"><span aria-hidden="true">▣</span>Library</a></div>
+      <div class="record-links"><a href="/MATH-PROGRAMME/documentaries/">Papers<span aria-hidden="true">→</span></a><a href="https://github.com/grandchallenge/MATHFORGE">Data<span aria-hidden="true">→</span></a><a href="https://github.com/grandchallenge/MATHSOLVE">Methods<span aria-hidden="true">→</span></a><a href="https://github.com/grandchallenge/MATHCERT">Artifacts<span aria-hidden="true">→</span></a><a href="/MATH-PROGRAMME/">Library<span aria-hidden="true">→</span></a></div>
     </div>
   </section>
   <section class="below" id="campaigns">
