@@ -48,6 +48,9 @@ def main() -> None:
             raise SystemExit(f"missing/unsafe website dependency: {path}")
     if not (ROOT / "assets").is_dir():
         raise SystemExit("missing assets directory")
+    for asset in (ROOT / "assets").rglob("*"):
+        if asset.is_symlink():
+            raise SystemExit(f"symlink not allowed in public assets: {asset}")
     if DIST.exists():
         shutil.rmtree(DIST)
     DIST.mkdir()
