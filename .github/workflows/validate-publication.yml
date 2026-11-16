@@ -1,0 +1,39 @@
+name: Validate public site candidate
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  publication:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
+        with:
+          python-version: '3.12'
+      - run: python validate.py
+      - run: python scripts/build_publication.py
+      - name: Verify deployed artifact allowlist
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -d dist/assets
+          test ! -e dist/.github
+          test ! -e dist/deployment
+          test ! -e dist/scripts
+          test ! -e dist/CNAME
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("publication-manifest.json").read_text())
+          assert report["schema"] == "gcl-publication-artifact/1"
+          assert report["files"]
+          assert all(p == "index.html" or p.startswith("assets/") for p in report["files"])
+          print("PASS: artifact manifest and publication allowlist")
+          PY
