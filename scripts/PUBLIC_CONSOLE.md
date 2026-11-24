@@ -23,3 +23,5 @@ no claim of all operations or continuous capture. Rollback: revert these scoped
 assets and build-hook changes; private CONTROL remains untouched.
 
 Production transfer basis: preview candidate commit 4058457e16ef1d78613c1f42c78032ed3aab0f0d; production base 33aa5839d370285f3e848b71b6d8892236d2aa6b. Production-specific policy pins its own existing validator. Only the reviewed source and UI assets are transferred, not preview workflow, DNS, renderer or Pages settings.
+
+Continuous viewer transfer from preview ca29baa9264de255341e49c00b420a11a09bef22. The live projection is independently authorized by CONTROL #101. The static site fetches only the dedicated public data branch; this does not expose a local service or private journal.

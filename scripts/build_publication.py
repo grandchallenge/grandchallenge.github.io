@@ -60,7 +60,7 @@ def main() -> None:
     # Do not accept a pre-existing feed or unrelated files in the console directory.
     from public_console import build as build_public_console
     console = DIST / "assets" / "operations"
-    if {p.name for p in console.iterdir()} != {"index.html", "console.css", "console.js"}:
+    if {p.name for p in console.iterdir()} != {"index.html", "console.css", "console.js", "live.html", "live.js"}:
         raise SystemExit("unexpected public console input")
     build_public_console(ROOT, console)
 
