@@ -17,6 +17,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: python validate.py
+      - run: python scripts/test_public_console.py
       - run: python scripts/build_publication.py
       - name: Verify deployed artifact allowlist
         shell: bash
