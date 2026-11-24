@@ -56,6 +56,14 @@ def main() -> None:
     DIST.mkdir()
     shutil.copy2(index, DIST / "index.html")
     shutil.copytree(ROOT / "assets", DIST / "assets", symlinks=False)
+    # Publication is constructed from a source-authorized public operation.
+    # Do not accept a pre-existing feed or unrelated files in the console directory.
+    from public_console import build as build_public_console
+    console = DIST / "assets" / "operations"
+    if {p.name for p in console.iterdir()} != {"index.html", "console.css", "console.js"}:
+        raise SystemExit("unexpected public console input")
+    build_public_console(ROOT, console)
+
     if (DIST / "CNAME").exists():
         raise SystemExit("custom domains are configured in Pages settings, not this artifact")
     manifest = {
