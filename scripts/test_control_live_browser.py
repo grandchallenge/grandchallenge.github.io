@@ -51,7 +51,7 @@ try:
             q.locator("[data-filter=request]").click()
             item=q.locator(".event").filter(has_text="run_bash").first
             item.locator("summary").click()
-            expect(item.locator(".detail")).to_contain_text("not released")
+            expect(item.locator(".detail")).to_contain_text("reason not recorded")
             transcript={"policy":"GCL_REVIEWED_RESEARCH_TRANSCRIPT/1","id":"a"*20,"repository":"grandchallenge/MATH-PROGRAMME","revision":"b"*40,"command":"lake env lean Proof.lean","stdout_stderr":"error: unsolved goals\n<script>literal text</script>\n[REDACTED:assignment]","redactions":{"command":{},"output":{"assignment":1}},"exit_code":0,"source_end":U}
             payload[0]={**feed,"transcripts":[transcript]}
             q.evaluate("tick(true)")
@@ -105,6 +105,13 @@ try:
             payload[0]={**payload[0],"repository_evidence":[evidence]}
             q.evaluate("tick(true)")
             expect(q.locator("#source")).to_contain_text("1 public research artifacts")
+            q.locator("#view-research").click()
+            source_card=q.locator(".research-sources article")
+            expect(source_card).to_be_visible()
+            expect(source_card.locator(".research-text")).to_have_text("theorem result verified\n<script>literal source</script>")
+            assert source_card.locator("script").count()==0
+            expect(source_card.locator("a").first).to_have_attribute("href","https://github.com/grandchallenge/MATH-PROGRAMME/blob/"+"c"*40+"/research/actual_stdout.txt#L1-L2")
+            q.locator("#view-operations").click()
             expect(q.locator(".event")).to_have_count(3)
             item=q.locator(".event.evidence")
             item.locator("summary").click()

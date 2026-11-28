@@ -105,12 +105,18 @@ function renderResearch(){
   }
   fragments.push(card)
  }
- if(!fragments.length)fragments.push(make('p','empty','No public execution transcripts in this retained epoch. Research will appear when actual authorized records arrive.'));
  const sources=all.filter(r=>r.event==='evidence').reverse();
- if(sources.length){const section=make('section','research-sources');section.append(make('h2','','Committed research artifacts'),make('p','research-objective','Already-public source evidence, not live execution or certification.'));
-  for(const r of sources){const d=make('details','research-evidence');d.dataset.key=r.key;d.open=expanded.has(r.key);d.append(make('summary','',r.j.repository+' · '+r.j.path));const content=make('div','research-evidence-body');fillDetails(content,r);d.append(content);section.append(d)}fragments.push(section)}
+ if(sources.length){const section=make('section','research-sources');section.append(make('h2','','Public research artifacts'),make('p','research-objective','Actual committed public research, including candidate work. These are source excerpts, not live execution or certification.'));
+  for(const r of sources){
+   const article=make('article','research-card');
+   article.append(make('div','research-programme',r.j.repository+' · '+shortTime(r.j.committed_at)),make('h2','',r.j.path),make('div','research-text',r.j.source_excerpt));
+   const link=make('a','','Read exact public source');
+   link.href='https://github.com/'+r.j.repository+'/blob/'+r.j.revision+'/'+r.j.path+'#L'+r.j.start_line+'-L'+r.j.end_line;link.rel='noopener noreferrer';link.target='_blank';article.append(link);
+   const d=make('details','research-evidence');d.dataset.key=r.key;d.open=expanded.has(r.key);d.append(make('summary','','Source identity, excerpt bounds and redaction evidence'));const content=make('div','research-evidence-body');fillDetails(content,r);d.append(content);article.append(d);section.append(article);
+  }fragments.push(section)}
+ if(!fragments.length)fragments.push(make('p','empty','No public research transcripts or source excerpts in the retained snapshot.'));
  root.replaceChildren(...fragments);
- el('research-status').textContent=cards.length+' retained research threads · epoch '+lastEpoch+' · statements are source-authored; results are observed. Missing history is not reconstructed.';
+ el('research-status').textContent=cards.length+' retained execution threads · '+sources.length+' public research artifacts · epoch '+lastEpoch+' · statements are source-authored; results are observed. Missing history is not reconstructed.';
 }
 function setResearchMode(v){el('research-view').hidden=!v;el('operations-view').hidden=v;el('view-research').setAttribute('aria-pressed',String(v));el('view-operations').setAttribute('aria-pressed',String(!v));if(!v)render()}
 el('view-research').onclick=()=>setResearchMode(true);el('view-operations').onclick=()=>setResearchMode(false);
@@ -224,11 +230,11 @@ async function tick(force=false){
    const t=transcripts.get(r.id);
    if(t&&(r.operation!=='run_bash'||r.finished_at===null||r.exit_code!==t.exit_code||Date.parse(t.source_end)<Date.parse(r.accepted_at)||Date.parse(t.source_end)>Date.parse(r.finished_at)))throw Error('transcript correlation');
    const provenance=t?{repository:t.repository,revision:t.revision,release:t.policy==='GCL_OPEN_RESEARCH_EXECUTION/1'?'Open research execution; isolated source-authorized run':t.policy==='GCL_AUTOMATIC_PUBLIC_SOURCE_TRANSCRIPT/1'?'Automatic exact public-source verification; local execution':t.policy==='GCL_NATIVE_PUBLIC_RESEARCH/1'?'Public research; actual ordinary Bash execution':'Reviewed research transcript; local execution'}:{};
-   const message=JSON.stringify({operation:r.operation,target:r.target,phase:'accepted',...provenance,...(t?{bash_command:t.command,redactions:t.redactions.command}:{payload:'Research transcript not released for this operation'})},null,2);
+   const message=JSON.stringify({operation:r.operation,target:r.target,phase:'accepted',...provenance,...(t?{bash_command:t.command,redactions:t.redactions.command}:{payload:'No verified public transcript in this snapshot; reason not recorded'})},null,2);
    records.push({utc:r.accepted_at,event:'request',run_id:r.id,operation:r.operation,message,excerpt:t?t.repository+' · '+t.command.replace(/\s+/g,' ').slice(0,160):r.target+' · accepted'});
    if(r.finished_at!==null){
     const duration=Math.round((Date.parse(r.finished_at)-Date.parse(r.accepted_at))/100)/10;
-    const out={operation:r.operation,target:r.target,outcome:r.outcome,exit_code:r.exit_code,duration_seconds:duration,...provenance,...(t?{...(t.policy==='GCL_OPEN_RESEARCH_EXECUTION/1'?parse(t.stdout_stderr):{stdout_stderr:t.stdout_stderr}),redactions:t.redactions.output}:{payload:'Research transcript not released for this operation'})};
+    const out={operation:r.operation,target:r.target,outcome:r.outcome,exit_code:r.exit_code,duration_seconds:duration,...provenance,...(t?{...(t.policy==='GCL_OPEN_RESEARCH_EXECUTION/1'?parse(t.stdout_stderr):{stdout_stderr:t.stdout_stderr}),redactions:t.redactions.output}:{payload:'No verified public transcript in this snapshot; reason not recorded'})};
     records.push({utc:r.finished_at,event:r.outcome==='completed'?'result':'failure',run_id:r.id,operation:r.operation,message:JSON.stringify(out,null,2),excerpt:(t?t.repository+' · '+(t.policy==='GCL_OPEN_RESEARCH_EXECUTION/1'?'research execution output':t.policy==='GCL_AUTOMATIC_PUBLIC_SOURCE_TRANSCRIPT/1'?'verified public-source output':t.policy==='GCL_NATIVE_PUBLIC_RESEARCH/1'?'research execution output':'reviewed output'):r.target)+' · exit '+r.exit_code+' · '+duration+'s'});
    }
    const last=r.finished_at||r.accepted_at;if(latest===null||Date.parse(last)>Date.parse(latest))latest=last;
