@@ -40,6 +40,9 @@ try:
             q.route(REF+"?window=*",ref)
             q.route(IMM,lambda route:route.fulfill(json=immutable[0],headers={"Access-Control-Allow-Origin":"*"}))
             q.goto(f"http://127.0.0.1:{server.server_port}/assets/operations/live.html")
+            expect(q.locator("#research-view")).to_be_visible()
+            expect(q.locator("#operations-view")).to_be_hidden()
+            q.locator("#view-operations").click()
             expect(q.locator("#state")).to_have_text("Recent publication")
             expect(q.locator(".event")).to_have_count(7)
             for channel,n in [("request",4),("result",2),("failure",1)]:expect(q.locator("#count-"+channel)).to_have_text(str(n))
@@ -77,6 +80,24 @@ try:
             expect(q.locator(".event[open] .detail")).to_contain_text("secret = 17")
             q.locator("[data-filter=research]").click()
             expect(q.locator(".event")).to_have_count(2)
+            # Native research narrative is a presentation of exact published bytes.
+            q.evaluate("async () => { while(inFlight) await new Promise(r=>setTimeout(r,20)); }")
+            narrative={**transcript,"policy":"GCL_NATIVE_PUBLIC_RESEARCH/1","command":"# GCL_PUBLIC_RESEARCH grandchallenge/MATH-PROGRAMME "+"b"*40+"\n# GCL_THREAD: SCC-001\n# GCL_TITLE: Structural Capacity Calculus\n# GCL_OBJECTIVE: Test structural invariants.\n# GCL_RESEARCH: Examine generators.\n# GCL_EXECUTE: Replay exact calculation.\npython3 test.py","stdout_stderr":"GCL_FINDING: Fixture result <script>literal</script>\nGCL_NEXT: Test another invariant.\n","redactions":{"command":{},"output":{}}}
+            payload[0]={**feed,"transcripts":[narrative]}
+            q.evaluate("tick(true)")
+            q.locator("#view-research").click()
+            card=q.locator(".research-card")
+            expect(card).to_have_count(1)
+            expect(card.locator("h2")).to_have_text("Structural Capacity Calculus")
+            expect(card).to_contain_text("Fixture result <script>literal</script>")
+            assert card.locator("script").count()==0
+            expect(card).to_contain_text("Test another invariant.")
+            card.locator("summary").click()
+            expect(card.locator(".research-evidence-body")).to_contain_text("python3 test.py")
+            expect(card.locator(".research-evidence-body")).to_contain_text("GCL_FINDING:")
+            assert q.locator("#operations-view").is_hidden()
+            q.locator("#view-operations").click()
+
 
 
             q.evaluate("async () => { while(inFlight) await new Promise(r=>setTimeout(r,20)); }")
