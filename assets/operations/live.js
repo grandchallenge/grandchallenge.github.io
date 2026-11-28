@@ -55,6 +55,66 @@ function render(){
  el('shown').textContent=visible.length+' of '+all.length+' retained records';
  if(follow)table.scrollTop=table.scrollHeight;else if(anchor&&nodes.has(anchor))table.scrollTop=nodes.get(anchor).offsetTop-offset;else table.scrollTop=oldTop
 }
+// Presentation only: consume already validated, public, redacted transcripts.
+function researchFields(command){
+ const out={},lines=command.split(/\r?\n/);
+ if(!/^# GCL_PUBLIC_RESEARCH grandchallenge\/[A-Z-]+ [a-f0-9]{40}$/.test(lines[0]))return out;
+ for(const line of lines.slice(1,7)){
+  const m=/^# GCL_(THREAD|TITLE|OBJECTIVE|RESEARCH|EXECUTE): ([^\r\n]{1,600})$/.exec(line);
+  if(!m||Object.hasOwn(out,m[1]))break;
+  out[m[1]]=m[2];
+ }
+ if(!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,79}$/.test(out.THREAD||''))return {};
+ return out
+}
+function researchEvent(parent,time,kind,content){
+ const row=make('div','research-event'),stampNode=make('time','research-time',stamp(time).slice(0,8)),body=make('div','research-event-body');
+ stampNode.dateTime=time;stampNode.title=time;
+ body.append(make('div','research-kind kind-'+kind.toLowerCase(),kind),make('div','research-text',content));row.append(stampNode,body);parent.append(row)
+}
+function renderResearch(){
+ const root=el('research-cards'), expanded=new Set([...root.querySelectorAll('details[open]')].map(n=>n.dataset.key));
+ const pairs=new Map();
+ for(const r of all){if(r.event==='evidence'||!r.j.release)continue;const p=pairs.get(r.run_id)||{};p[r.event==='request'?'start':'end']=r;pairs.set(r.run_id,p)}
+ const threads=new Map();
+ for(const [id,p] of pairs){if(!p.start||!p.end)continue;const f=researchFields(p.start.j.bash_command||''),repo=p.start.j.repository;
+  const key=repo+'|'+(f.THREAD||id),t=threads.get(key)||{repo,runs:[],key};t.runs.push({...p,f,id});threads.set(key,t)}
+ const cards=[...threads.values()].sort((a,b)=>b.runs.at(-1).end.utc.localeCompare(a.runs.at(-1).end.utc));
+ const fragments=[];
+ for(const t of cards){
+  const current=t.runs.at(-1),f=current.f,card=make('article','research-card');
+  card.append(make('div','research-programme',t.repo+(f.THREAD?' · '+f.THREAD:'')),make('h2','',f.TITLE||'Public research execution'));
+  if(f.OBJECTIVE)card.append(make('p','research-objective',f.OBJECTIVE));
+  for(const run of t.runs){
+   const {start,end,id,f}=run;
+   if(f.RESEARCH)researchEvent(card,start.utc,'RESEARCH',f.RESEARCH);
+   const command=(start.j.bash_command||'').split(/\r?\n/).find(l=>l.trim()&&!l.startsWith('#'));
+   researchEvent(card,start.utc,'EXECUTE',f.EXECUTE||(command?'Actual command: '+command.slice(0,300):'See actual command in supporting evidence.'));
+   const output=end.j.stdout_stderr??[end.j.stdout,end.j.stderr].filter(x=>typeof x==='string').join('\n');
+   researchEvent(card,end.utc,'RESULT',end.j.outcome+' · exit '+end.j.exit_code+' · '+end.j.duration_seconds+'s');
+   let authored=0;
+   // Explicitly marked lines are researcher statements, not independently validated conclusions.
+   if(f.THREAD&&typeof output==='string')for(const line of output.split(/\r?\n/)){
+    const m=/^GCL_(FINDING|NEXT|BLOCKER): ([^\r\n]{1,600})$/.exec(line);
+    if(m&&authored++<8)researchEvent(card,end.utc,m[1],m[2]);
+   }
+   if(!authored&&output?.trim())researchEvent(card,end.utc,'OUTPUT',output.slice(0,480)+(output.length>480?' …':''));
+   const detail=make('details','research-evidence');detail.dataset.key=id;detail.open=expanded.has(id);
+   detail.append(make('summary','','Supporting evidence · actual command, output and revision'));
+   const content=make('div','research-evidence-body');fillDetails(content,start);fillDetails(content,end);detail.append(content);card.append(detail);
+  }
+  fragments.push(card)
+ }
+ if(!fragments.length)fragments.push(make('p','empty','No public execution transcripts in this retained epoch. Research will appear when actual authorized records arrive.'));
+ const sources=all.filter(r=>r.event==='evidence').reverse();
+ if(sources.length){const section=make('section','research-sources');section.append(make('h2','','Committed research artifacts'),make('p','research-objective','Already-public source evidence, not live execution or certification.'));
+  for(const r of sources){const d=make('details','research-evidence');d.dataset.key=r.key;d.open=expanded.has(r.key);d.append(make('summary','',r.j.repository+' · '+r.j.path));const content=make('div','research-evidence-body');fillDetails(content,r);d.append(content);section.append(d)}fragments.push(section)}
+ root.replaceChildren(...fragments);
+ el('research-status').textContent=cards.length+' retained research threads · epoch '+lastEpoch+' · statements are source-authored; results are observed. Missing history is not reconstructed.';
+}
+function setResearchMode(v){el('research-view').hidden=!v;el('operations-view').hidden=v;el('view-research').setAttribute('aria-pressed',String(v));el('view-operations').setAttribute('aria-pressed',String(!v));if(!v)render()}
+el('view-research').onclick=()=>setResearchMode(true);el('view-operations').onclick=()=>setResearchMode(false);
+
 function metrics(){
  const valid=all.map(r=>+new Date(r.utc)).filter(Number.isFinite),lo=valid.length?Math.min(...valid):0,hi=valid.length?Math.max(...valid):0;
  const bins=24,counts=Object.fromEntries(channels.map(c=>[c,Array(bins).fill(0)]));let max=1;
@@ -204,7 +264,7 @@ async function tick(force=false){
   source.append(make('span','','Epoch '+feed.epoch+' · '+feed.epoch_started_at+' · '+(feed.epoch_reason==='activation'?'new coverage; earlier history not included':'source discontinuity; resumed from new boundary, missing history not reconstructed')));
   records.sort((a,b)=>a.utc.localeCompare(b.utc));
   all=prepare(records);const retained=new Set(all.map(r=>r.key));for(const k of opened)if(!retained.has(k))opened.delete(k);
-  metrics();render()
+  metrics();render();renderResearch()
  }catch(e){if(!paused&&!document.hidden){failures++;retryAt=performance.now()+Math.min(60000,5000*2**Math.min(failures-1,4));status('Feed unavailable · retained display','stale')}}finally{clearTimeout(deadline);controller=null;inFlight=false;if(!paused&&!document.hidden&&el('state').textContent==='Paused')tick(true)}
 }
 document.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>{filter=b.dataset.filter;document.querySelectorAll('[data-filter]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));render()});

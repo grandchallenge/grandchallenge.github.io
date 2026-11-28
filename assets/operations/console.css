@@ -27,3 +27,13 @@ header h1{font-size:25px;margin:5px 0 4px}.subtitle{font-size:11px}.connection{d
 .metric[data-stream=result] .series i{background:var(--output)}.metric[data-stream=failure] .series i{background:var(--error)}.request .stream{color:var(--input)}.result .stream{color:var(--output)}.failure .stream{color:var(--error)}
 
 @media(max-width:760px){#refresh{grid-column:1/-1;justify-self:start}#follow{font-size:10px}}
+
+/* Research-first presentation, using the same validated feed. */
+[hidden]{display:none!important}.view-switch{display:flex;gap:8px;padding:14px 0;border-bottom:1px solid var(--rule);flex-wrap:wrap}
+#research-view{max-width:1040px;margin:0 auto;padding:12px 0 32px}.research-status{color:var(--muted);font-size:12px;overflow-wrap:anywhere}
+.research-card{border:1px solid var(--rule);border-radius:12px;background:#151819;padding:clamp(16px,3vw,28px);margin:18px 0;overflow-wrap:anywhere}
+.research-programme{color:var(--muted);font-size:12px;letter-spacing:.04em}.research-card h2,.research-sources h2{font:600 22px/1.3 system-ui;margin:12px 0}.research-objective{color:var(--muted);font-size:15px;margin:0 0 20px}
+.research-event{display:grid;grid-template-columns:76px minmax(0,1fr);gap:12px;padding:18px 0;border-top:1px solid var(--rule)}
+.research-time{font:12px var(--mono);color:var(--muted);padding-top:3px}.research-kind{font-size:12px;font-weight:650;letter-spacing:.035em;color:var(--input);margin-bottom:6px}.kind-finding{color:#d9bd88}.kind-next,.kind-result{color:var(--output)}.kind-blocker{color:var(--error)}.research-text{font-size:15px;white-space:pre-wrap;overflow-wrap:anywhere}
+.research-evidence{background:#202527;border-radius:6px;margin:10px 0 20px;padding:12px;overflow-wrap:anywhere}.research-evidence summary{cursor:pointer;color:var(--ink);font-size:13px}.research-evidence-body{padding-top:12px}.research-evidence pre{font:12px/1.5 var(--mono);white-space:pre-wrap;overflow-wrap:anywhere}.research-evidence a{color:var(--input)}
+@media(max-width:450px){.research-event{grid-template-columns:60px minmax(0,1fr);gap:8px}.research-time{font-size:10px}.research-text{font-size:14px}}
